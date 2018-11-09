@@ -1,2 +1,2 @@
 # mq-share
-some user experiences about rocketmq
+some user experiences about mq
