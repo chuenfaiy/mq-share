@@ -9,7 +9,7 @@
 
 单位的项目基本上是面向互联网数据的分析等领域，数据种类比较多，主要包括短文本（微博等）、长文本（网页文章、公众号文章等）、非格式化数据（图片、音频、小视频）。首先，这些数据是流式的，即从业务角度来看具有很强的时效性，需要得到快速的处理；其次，这些数据在尺寸上比较复杂，有短文本、日志这样的小消息（不大于500B），也要文章这样的中等消息（1k-2k），还有图片等这样的大消息（1M-5M），所以我们的系统基于RocketMQ构建了一系列的Pipeline来做数据的实时分发和处理。
 
-![处理流程.png](/Users/chuenfai/Library/Application Support/typora-user-images/image-20181114163252870.png)
+![处理流程.png](https://raw.githubusercontent.com/Chuenfai/mq-share/master/img/1.png)
 
 #### 技术选型
 
@@ -27,7 +27,7 @@
 
 我们的消息服务经历过几次调整，目前的架构算是比较稳定，已在线上稳定运行了一年多时间。如图所示，我们目前基于RocketMQ以及不同的业务场景搭建了多套独立的Broker主从集群。
 
-![image-20181121155815895](/Users/chuenfai/Library/Application Support/typora-user-images/image-20181121155815895.png)
+![MQ服务架构](https://raw.githubusercontent.com/Chuenfai/mq-share/master/img/2.png)
 
 ##### 多客户端
 
@@ -53,7 +53,7 @@ RocketMQ本身自带了很多运维命令以及WebUI管理界面，但是考虑�
 
 版本升级是一个常见的问题，我们的场景要求在不影响上层服务的基础上对Broker集群进行热升级。 单纯的shutdown可能出现服务不可用的风险，我们的做法是同时构建一套新版本的集群，然后更新Namesrv，然后将老版本的集群禁写，最后当老集群上的所有数据都过期后停止即可。
 
-![image-20181121162733480](/Users/chuenfai/Library/Application Support/typora-user-images/image-20181121162733480.png)
+![image](https://raw.githubusercontent.com/Chuenfai/mq-share/master/img/3.png)
 
 在升级过程中需要注意几点：
 
@@ -68,7 +68,7 @@ RocketMQ本身自带了很多运维命令以及WebUI管理界面，但是考虑�
 
 之前线上Broker集群在突发流量情况下出现过某几个节点内存使用率爆表的情况，导致机器异常卡顿，经跟踪发现是系统调优时并没有限制MQ的内存使用情况（os.sh注释掉了），最后的解决办法是调整系统参数（vm.min_free_kbytes）限制MQ的内存使用。
 
-![image](/Users/chuenfai/Desktop/image_1.png)
+![image](https://raw.githubusercontent.com/Chuenfai/mq-share/master/img/4.png)
 
 这个系统参数是内核最小free的内存阈值，用于计算内存水位线，使得各低端内存区域按照一定比例，预留内存。预留内存可以避免内核在紧急情况下分配不出内存而导致的死锁问题；当然也不能调的过高，否则容易导致系统判定内存不足抛出OOM异常。
 
@@ -76,7 +76,7 @@ RocketMQ本身自带了很多运维命令以及WebUI管理界面，但是考虑�
 
 之前在将Broker集群由3.5版本升级到4.2版本时，发现客户端在大流量时间节点下频繁的触发流控（业务客户端对写入速率没有做控制）。
 
-![image](/Users/chuenfai/Desktop/image.png)
+![image](https://raw.githubusercontent.com/Chuenfai/mq-share/master/img/5.png)
 
 这个是RocketMQ后来新引入的特性，属于一种服务端保护机制，对MQ进行大流量压力测试时容易出现，解决方案有两种：
 
